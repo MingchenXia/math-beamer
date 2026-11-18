@@ -160,7 +160,7 @@ def render(source: str | Path, *, handout: bool = False) -> Deck:
     lines.extend([
         r"\begin{frame}",
         r"\centering",
-        r"Thank you!",
+        r"{\fontsize{32}{38}\selectfont\bfseries Thank you!\par}",
         r"\end{frame}",
         r"\end{document}",
         "",
