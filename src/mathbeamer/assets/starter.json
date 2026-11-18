@@ -1,0 +1,47 @@
+{
+  "title": "A Mathematical Question",
+  "author": "Your name",
+  "affiliation": "Your institution",
+  "date": "Seminar name",
+  "minutes": 6,
+  "sections": [
+    {
+      "title": "Motivation",
+      "frames": [
+        {
+          "title": "A small example",
+          "level": "elementary",
+          "style": "example",
+          "body": [
+            {"text": "Replace this line with an example anyone can compute."},
+            {"pause": true},
+            {"text": "Make the example point to the **main question**."}
+          ],
+          "notes": "Give the audience time to predict the answer."
+        }
+      ]
+    },
+    {
+      "title": "Main result",
+      "frames": [
+        {
+          "title": "The main theorem",
+          "level": "standard",
+          "style": "theorem",
+          "body": [
+            {"text": "State the hypotheses in familiar terms."},
+            {"text": "State the conclusion and explain its meaning."}
+          ]
+        },
+        {
+          "title": "What the theorem gives us",
+          "level": "standard",
+          "body": [
+            {"bullet": "Return to the opening example."},
+            {"bullet": "Name one consequence or open question."}
+          ]
+        }
+      ]
+    }
+  ]
+}

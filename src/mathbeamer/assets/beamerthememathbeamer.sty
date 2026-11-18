@@ -1,0 +1,86 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerthememathbeamer}[2026/11/18 Math Beamer]
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}
+\RequirePackage[english]{babel}
+\RequirePackage{amsmath,amssymb}
+
+\usetheme{Madrid}
+\usefonttheme{professionalfonts}
+\definecolor{MathNavy}{HTML}{173351}
+\definecolor{MathInk}{HTML}{182738}
+\definecolor{MathTeal}{HTML}{116459}
+\definecolor{MathRust}{HTML}{9E3A24}
+
+\setbeamercolor{normal text}{fg=MathInk,bg=white}
+\setbeamercolor{structure}{fg=MathNavy}
+\setbeamercolor{frametitle}{fg=white,bg=MathNavy}
+\setbeamercolor{title}{fg=white,bg=MathNavy}
+\setbeamercolor{alerted text}{fg=MathRust}
+\setbeamercolor{block title}{fg=white,bg=MathNavy}
+\setbeamercolor{block body}{fg=MathInk,bg=MathNavy!6}
+\setbeamercolor{block title example}{fg=white,bg=MathTeal}
+\setbeamercolor{block body example}{fg=MathInk,bg=MathTeal!7}
+\setbeamercolor{block title alerted}{fg=white,bg=MathRust}
+\setbeamercolor{block body alerted}{fg=MathInk,bg=MathRust!7}
+\setbeamercolor{page number in head/foot}{fg=MathNavy,bg=MathNavy!6}
+\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
+\setbeamerfont{title}{size=\LARGE,series=\bfseries}
+\setbeamerfont{alerted text}{series=\bfseries}
+\setbeamerfont{page number in head/foot}{size=\scriptsize}
+\setbeamersize{text margin left=1.25em,text margin right=1.25em}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{headline}{}
+\setbeamercovered{invisible}
+
+\newsavebox{\MathBeamerBox}
+\newcommand{\MathBeamerMeasure}[2]{%
+  \sbox{\MathBeamerBox}{#1}%
+  \ifdim\wd\MathBeamerBox>#2\relax
+    \PackageError{mathbeamer}{Line too wide on frame \insertframenumber}%
+      {Shorten the title, text or formula. Split it across entries or frames.}%
+  \fi
+}
+\newcommand{\MathBeamerLine}[1]{%
+  \par\addvspace{0.4em}%
+  \MathBeamerMeasure{#1}{\linewidth}%
+  \noindent\usebox{\MathBeamerBox}\par
+}
+\newcommand{\MathBeamerBullet}[1]{%
+  \MathBeamerLine{\makebox[1em][l]{\textcolor{MathTeal}{\textbullet}}#1}%
+}
+\newcommand{\MathBeamerEquation}[1]{%
+  \par\addvspace{0.65em}%
+  \MathBeamerMeasure{\(\displaystyle #1\)}{\linewidth}%
+  \noindent\makebox[\linewidth][c]{\usebox{\MathBeamerBox}}\par
+  \addvspace{0.45em}%
+}
+
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,sep=.85em]{frametitle}
+    \usebeamerfont{frametitle}%
+    \MathBeamerMeasure{\insertframetitle}{\dimexpr\paperwidth-1.7em\relax}%
+    \usebox{\MathBeamerBox}%
+  \end{beamercolorbox}%
+}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=2.7ex,dp=1.2ex,right,rightskip=1.2em]{page number in head/foot}
+    \usebeamerfont{page number in head/foot}\insertframenumber\,/\,\inserttotalframenumber
+  \end{beamercolorbox}%
+}
+\setbeamertemplate{title page}{%
+  {\centering
+    \begin{beamercolorbox}[wd=\linewidth,sep=1em,rounded=true,center]{title}
+      \usebeamerfont{title}\MathBeamerLine{\inserttitle}
+    \end{beamercolorbox}
+    \vskip1.4em
+    \usebeamerfont{author}\MathBeamerLine{\insertauthor}
+    \usebeamerfont{institute}\MathBeamerLine{\insertinstitute}
+    \usebeamerfont{date}\MathBeamerLine{\insertdate}
+  \par}%
+}
+\setbeamertemplate{section in toc}{%
+  \MathBeamerLine{\textcolor{MathTeal}{\inserttocsectionnumber.\enspace}\inserttocsection}%
+}

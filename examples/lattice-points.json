@@ -1,0 +1,103 @@
+{
+  "title": "Counting Lattice Points in a Triangle",
+  "author": "Math Beamer",
+  "date": "Sample seminar",
+  "minutes": 14,
+  "sections": [
+    {
+      "title": "The counting problem",
+      "frames": [
+        {
+          "title": "How many grid points fit?",
+          "level": "elementary",
+          "style": "question",
+          "body": [
+            {"text": "Start with points $(x,y)$ whose coordinates are whole numbers."},
+            {"text": "Keep the points with $x+y\\leq 4$, including the boundary."},
+            {"pause": true},
+            {"text": "Can you count them without checking every point?"}
+          ],
+          "notes": "Ask for a guess before revealing the last line."
+        },
+        {
+          "title": "The grid for size four",
+          "level": "elementary",
+          "kind": "figure",
+          "image": "triangle.pdf",
+          "caption": "The dots mark the grid points in the triangle."
+        },
+        {
+          "title": "Count one row at a time",
+          "level": "elementary",
+          "style": "example",
+          "body": [
+            {"text": "The bottom row has five points."},
+            {"text": "Move one row up and **lose one point** each time."},
+            {"equation": "5+4+3+2+1=15."}
+          ]
+        },
+        {
+          "title": "Pair the long and short rows",
+          "level": "elementary",
+          "body": [
+            {"bullet": "The longest and shortest rows add up to six."},
+            {"bullet": "The next two rows add up to six as well."},
+            {"bullet": "The middle row has three points."}
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Polynomials and growth",
+      "frames": [
+        {
+          "title": "The count for any size",
+          "level": "standard",
+          "style": "theorem",
+          "body": [
+            {"text": "Let $k$ be a nonnegative integer."},
+            {"text": "Let $N(k)$ count whole-number pairs $(x,y)$ with $x+y\\leq k$."},
+            {"equation": "N(k)=\\frac{(k+1)(k+2)}{2}."},
+            {"pause": true},
+            {"text": "Pair the row lengths with the same list in reverse order."}
+          ],
+          "notes": "Add the list of row lengths to its reversed copy and divide by two."
+        },
+        {
+          "title": "One point for each monomial",
+          "level": "standard",
+          "body": [
+            {"text": "Send a grid point $(a,b)$ to the monomial $X^aY^b$."},
+            {"text": "The inequality $a+b\\leq k$ bounds the **total degree**."},
+            {"equation": "\\dim_{\\mathbb{R}}\\mathbb{R}[X,Y]_{\\leq k}=N(k)."}
+          ]
+        },
+        {
+          "title": "More variables",
+          "level": "technical",
+          "body": [
+            {"text": "Let $N_d(k)$ count monomials of total degree at most $k$ in $d$ variables."},
+            {"text": "Introduce a slack exponent $a_{d+1}$ to reach degree $k$."},
+            {"equation": "a_1+\\cdots+a_d+a_{d+1}=k,\\qquad a_i\\geq 0."},
+            {"text": "Place $d$ dividers among $k$ stars to count the solutions."},
+            {"equation": "N_d(k)=\\binom{k+d}{d}."}
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Takeaways",
+      "frames": [
+        {
+          "title": "Area gives the leading term",
+          "level": "standard",
+          "body": [
+            {"text": "A triangle with legs of length $k$ has area $k^2/2$."},
+            {"equation": "N(k)=\\frac{k^2}{2}+\\frac{3k}{2}+1."},
+            {"text": "The leading term of the monomial count is **area**."}
+          ]
+        }
+      ]
+    }
+  ]
+}
