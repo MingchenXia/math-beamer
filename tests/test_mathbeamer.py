@@ -72,6 +72,17 @@ class TalkTests(unittest.TestCase):
         with self.assertRaisesRegex(TalkError, "7 text lines"):
             load_talk(self.write_spec())
 
+    def test_text_line_limit_can_be_relaxed_per_frame(self):
+        self.frames[0]["body"] = [{"text": "A short line."}] * 6 + [{"equation": "1+1=2"}]
+        self.frames[0]["text_line_limit"] = 8
+        load_talk(self.write_spec())
+        self.frames[0]["text_line_limit"] = 7
+        with self.assertRaisesRegex(TalkError, "8 text lines"):
+            load_talk(self.write_spec())
+        self.frames[0]["text_line_limit"] = 9
+        with self.assertRaisesRegex(TalkError, "integer from 6 to 8"):
+            load_talk(self.write_spec())
+
     def test_two_equations_are_allowed_but_three_fail(self):
         self.frames[0]["body"] = [{"equation": "1+1=2"}, {"equation": "1+2=3"}]
         load_talk(self.write_spec())
@@ -115,7 +126,7 @@ class TalkTests(unittest.TestCase):
         self.assertEqual(render(starter).talk.content_frames, 3)
         output = self.root / "generated"
         deck = build(DEMO, output, tex_only=True)
-        self.assertEqual(deck.talk.total_frames, 11)
+        self.assertEqual(deck.talk.total_frames, 13)
         self.assertTrue((output / "beamerthememathbeamer.sty").is_file())
         self.assertTrue((output / "figures/figure-1.pdf").is_file())
         self.assertFalse((output / "main.pdf").exists())
@@ -128,7 +139,7 @@ class TalkTests(unittest.TestCase):
 class PdfTests(unittest.TestCase):
     def test_demo_compiles_with_and_without_overlays(self):
         with TemporaryDirectory() as temporary:
-            for handout, expected in ((False, 13), (True, 11)):
+            for handout, expected in ((False, 15), (True, 13)):
                 with self.subTest(handout=handout):
                     output = Path(temporary) / str(handout)
                     build(DEMO, output, handout=handout)
@@ -136,9 +147,39 @@ class PdfTests(unittest.TestCase):
                     info = subprocess.check_output(["pdfinfo", str(pdf)], text=True)
                     pages = next(line.split()[-1] for line in info.splitlines() if line.startswith("Pages:"))
                     self.assertEqual(int(pages), expected)
-                    text = subprocess.check_output(["pdftotext", str(pdf), "-"], text=True)
+                    size = next(line.split() for line in info.splitlines() if line.startswith("Page size:"))
+                    self.assertAlmostEqual(float(size[2]) / float(size[4]), 4 / 3, places=3)
+                    text = subprocess.check_output(["pdftotext", "-layout", str(pdf), "-"], text=True)
                     self.assertIn("lose one point", text)
                     self.assertIn("Thank you", text)
+                    self.assertEqual(text.count("Table of Contents"), 3)
+                    frames = [part for part in text.split("\f") if part.strip()]
+                    for frame in frames:
+                        footer = frame.strip().splitlines()[-1]
+                        self.assertIn("Math Beamer (Seminar)", footer)
+                        self.assertIn("Lattice Points", footer)
+                        self.assertIn("Nov. 18, 2026", footer)
+                        self.assertRegex(footer, r"\d+\s*/\s*13\s*$")
+
+    def test_long_title_uses_short_footer_text(self):
+        data = {
+            "title": "A long title about convex bodies and their asymptotic growth",
+            "author": "A. Author",
+            "minutes": 2,
+            "sections": [{"title": "Motivation", "frames": [
+                content(body=[{"text": "A short line."}] * 7, text_line_limit=8),
+            ]}],
+        }
+        with TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "talk.json"
+            source.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(TalkError, "short_title"):
+                build(source, root / "output")
+            data["short_title"] = "Convex Bodies"
+            source.write_text(json.dumps(data), encoding="utf-8")
+            build(source, root / "output")
+            self.assertTrue((root / "output/main.pdf").is_file())
 
     def test_pdf_build_rejects_a_line_that_cannot_fit(self):
         data = {

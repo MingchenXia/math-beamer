@@ -1,7 +1,11 @@
 {
   "title": "Counting Lattice Points in a Triangle",
+  "short_title": "Lattice Points",
   "author": "Math Beamer",
-  "date": "Sample seminar",
+  "affiliation": "Mathematics Seminar",
+  "short_affiliation": "Seminar",
+  "date": "November 18, 2026",
+  "short_date": "Nov. 18, 2026",
   "minutes": 14,
   "sections": [
     {

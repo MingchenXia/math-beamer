@@ -12,6 +12,7 @@ STYLES = ("plain", "theorem", "example", "question")
 LEVELS = ("elementary", "standard", "technical")
 TEXT_ITEMS = ("text", "bullet")
 MAX_TEXT_LINES = 6
+MAX_RELAXED_TEXT_LINES = 8
 MAX_EQUATIONS = 2
 MAX_TECHNICAL = 5
 MAX_LAYOUT_ROWS = 8
@@ -58,10 +59,15 @@ class Talk:
     opening_frames: int
     technical_frames: int
     warnings: tuple[str, ...]
+    short_title: str = ""
+    short_author: str = ""
+    short_affiliation: str = ""
+    short_date: str = ""
 
     @property
     def total_frames(self) -> int:
-        return 2 + int(self.outline) + sum(len(section.frames) for section in self.sections)
+        outlines = len(self.sections) if self.outline else 0
+        return 2 + outlines + sum(len(section.frames) for section in self.sections)
 
 
 def _object(value, where, required, optional=()):
@@ -114,7 +120,7 @@ def _frame(raw, where, directory):
         raise TalkError(f"{where} must be an object")
     kind = _choice(raw.get("kind", "content"), ("content", "figure"), f"{where}.kind")
     required = ("title", "level", "image" if kind == "figure" else "body")
-    optional = ("kind", "notes", "caption" if kind == "figure" else "style")
+    optional = ("kind", "notes") + (("caption",) if kind == "figure" else ("style", "text_line_limit"))
     _object(raw, where, required, optional)
     title = _line(raw["title"], f"{where}.title")
     level = _choice(raw["level"], LEVELS, f"{where}.level")
@@ -141,11 +147,15 @@ def _frame(raw, where, directory):
         raise TalkError(f"{label}: use at most one pause, between visible items")
     text_lines = 1 + (style != "plain") + sum(item.kind in TEXT_ITEMS for item in items)
     equations = sum(item.kind == "equation" for item in items)
-    if text_lines > MAX_TEXT_LINES:
-        raise TalkError(f"{label}: {text_lines} text lines including headings (limit {MAX_TEXT_LINES})")
+    text_limit = raw.get("text_line_limit", MAX_TEXT_LINES)
+    if type(text_limit) is not int or not MAX_TEXT_LINES <= text_limit <= MAX_RELAXED_TEXT_LINES:
+        raise TalkError(f"{label}: text_line_limit must be an integer from {MAX_TEXT_LINES} to {MAX_RELAXED_TEXT_LINES}")
+    if text_lines > text_limit:
+        raise TalkError(f"{label}: {text_lines} text lines including headings (limit {text_limit})")
     if equations > MAX_EQUATIONS:
         raise TalkError(f"{label}: {equations} displayed equations (limit {MAX_EQUATIONS})")
-    if text_lines + 2 * equations > MAX_LAYOUT_ROWS:
+    layout_limit = MAX_LAYOUT_ROWS + text_limit - MAX_TEXT_LINES
+    if text_lines + 2 * equations > layout_limit:
         raise TalkError(f"{label}: text and displays are too dense together. Move an item to another frame.")
     return Frame(title, level, items=items, style=style, notes=notes)
 
@@ -167,7 +177,8 @@ def load_talk(source: str | Path) -> Talk:
     except (OSError, ValueError) as error:
         raise TalkError(f"{source}: {error}") from error
 
-    _object(raw, "Talk", ("title", "author", "minutes", "sections"), ("affiliation", "date", "outline"))
+    short_fields = ("short_title", "short_author", "short_affiliation", "short_date")
+    _object(raw, "Talk", ("title", "author", "minutes", "sections"), ("affiliation", "date", "outline", *short_fields))
     minutes = raw["minutes"]
     if (type(minutes) not in (int, float) or minutes <= 0
             or (isinstance(minutes, float) and not math.isfinite(minutes))):
@@ -214,7 +225,7 @@ def load_talk(source: str | Path) -> Talk:
         warnings.append("Add a worked example to the elementary opening.")
     metadata = {
         field: _line(raw[field], field) if field in raw else ""
-        for field in ("title", "author", "affiliation", "date")
+        for field in ("title", "author", "affiliation", "date", *short_fields)
     }
     return Talk(
         **metadata, outline=outline, sections=tuple(sections), content_frames=count,

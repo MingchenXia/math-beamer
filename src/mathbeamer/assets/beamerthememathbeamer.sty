@@ -6,40 +6,16 @@
 \RequirePackage{amsmath,amssymb}
 
 \usetheme{Madrid}
+\usecolortheme{default}
 \usefonttheme{professionalfonts}
-\definecolor{MathNavy}{HTML}{173351}
-\definecolor{MathInk}{HTML}{182738}
-\definecolor{MathTeal}{HTML}{116459}
-\definecolor{MathRust}{HTML}{9E3A24}
-
-\setbeamercolor{normal text}{fg=MathInk,bg=white}
-\setbeamercolor{structure}{fg=MathNavy}
-\setbeamercolor{frametitle}{fg=white,bg=MathNavy}
-\setbeamercolor{title}{fg=white,bg=MathNavy}
-\setbeamercolor{alerted text}{fg=MathRust}
-\setbeamercolor{block title}{fg=white,bg=MathNavy}
-\setbeamercolor{block body}{fg=MathInk,bg=MathNavy!6}
-\setbeamercolor{block title example}{fg=white,bg=MathTeal}
-\setbeamercolor{block body example}{fg=MathInk,bg=MathTeal!7}
-\setbeamercolor{block title alerted}{fg=white,bg=MathRust}
-\setbeamercolor{block body alerted}{fg=MathInk,bg=MathRust!7}
-\setbeamercolor{page number in head/foot}{fg=MathNavy,bg=MathNavy!6}
-\setbeamerfont{frametitle}{size=\Large,series=\bfseries}
-\setbeamerfont{title}{size=\LARGE,series=\bfseries}
-\setbeamerfont{alerted text}{series=\bfseries}
-\setbeamerfont{page number in head/foot}{size=\scriptsize}
-\setbeamersize{text margin left=1.25em,text margin right=1.25em}
 \setbeamertemplate{blocks}[rounded][shadow=false]
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{headline}{}
-\setbeamercovered{invisible}
 
 \newsavebox{\MathBeamerBox}
-\newcommand{\MathBeamerMeasure}[2]{%
-  \sbox{\MathBeamerBox}{#1}%
-  \ifdim\wd\MathBeamerBox>#2\relax
-    \PackageError{mathbeamer}{Line too wide on frame \insertframenumber}%
-      {Shorten the title, text or formula. Split it across entries or frames.}%
+\newcommand{\MathBeamerMeasure}[3][content]{%
+  \sbox{\MathBeamerBox}{#2}%
+  \ifdim\wd\MathBeamerBox>#3\relax
+    \PackageError{mathbeamer}{Line too wide on frame \insertframenumber\space (#1)}%
+      {Shorten the line. For the footer, set the corresponding short metadata.}%
   \fi
 }
 \newcommand{\MathBeamerLine}[1]{%
@@ -48,7 +24,8 @@
   \noindent\usebox{\MathBeamerBox}\par
 }
 \newcommand{\MathBeamerBullet}[1]{%
-  \MathBeamerLine{\makebox[1em][l]{\textcolor{MathTeal}{\textbullet}}#1}%
+  \MathBeamerLine{\makebox[\leftmargini][r]{%
+    {\usebeamercolor[fg]{itemize item}\usebeamertemplate{itemize item}}\hspace{\labelsep}}#1}%
 }
 \newcommand{\MathBeamerEquation}[1]{%
   \par\addvspace{0.65em}%
@@ -57,30 +34,27 @@
   \addvspace{0.45em}%
 }
 
-\setbeamertemplate{frametitle}{%
-  \nointerlineskip
-  \begin{beamercolorbox}[wd=\paperwidth,sep=.85em]{frametitle}
-    \usebeamerfont{frametitle}%
-    \MathBeamerMeasure{\insertframetitle}{\dimexpr\paperwidth-1.7em\relax}%
-    \usebox{\MathBeamerBox}%
-  \end{beamercolorbox}%
-}
-\setbeamertemplate{footline}{%
-  \begin{beamercolorbox}[wd=\paperwidth,ht=2.7ex,dp=1.2ex,right,rightskip=1.2em]{page number in head/foot}
-    \usebeamerfont{page number in head/foot}\insertframenumber\,/\,\inserttotalframenumber
-  \end{beamercolorbox}%
-}
-\setbeamertemplate{title page}{%
-  {\centering
-    \begin{beamercolorbox}[wd=\linewidth,sep=1em,rounded=true,center]{title}
-      \usebeamerfont{title}\MathBeamerLine{\inserttitle}
-    \end{beamercolorbox}
-    \vskip1.4em
-    \usebeamerfont{author}\MathBeamerLine{\insertauthor}
-    \usebeamerfont{institute}\MathBeamerLine{\insertinstitute}
-    \usebeamerfont{date}\MathBeamerLine{\insertdate}
-  \par}%
-}
-\setbeamertemplate{section in toc}{%
-  \MathBeamerLine{\textcolor{MathTeal}{\inserttocsectionnumber.\enspace}\inserttocsection}%
-}
+\addtobeamertemplate{frametitle}{%
+  {\usebeamerfont{frametitle}%
+   \MathBeamerMeasure[frame title]{\insertframetitle}{\dimexpr\paperwidth-0.6cm\relax}}%
+}{}
+\addtobeamertemplate{section in toc}{%
+  {\MathBeamerMeasure[table of contents]{\inserttocsection}{\dimexpr\linewidth-2.75ex\relax}}%
+}{}
+
+% Check the three native Madrid footer boxes before Beamer typesets them.
+\addtobeamertemplate{footline}{%
+  {\usebeamerfont{author in head/foot}%
+   \MathBeamerMeasure[short\string_author or short\string_affiliation]{%
+     \insertshortauthor
+     \expandafter\ifblank\expandafter{\beamer@shortinstitute}{}{~~(\insertshortinstitute)}%
+   }{.333333\paperwidth}}%
+  {\usebeamerfont{title in head/foot}%
+   \MathBeamerMeasure[short\string_title]{\insertshorttitle}{.333333\paperwidth}}%
+  {\usebeamerfont{date in head/foot}%
+   \MathBeamerMeasure[short\string_date]{%
+     \insertshortdate{}\hspace*{2em}%
+     {\usebeamerfont{page number in head/foot}\usebeamertemplate{page number in head/foot}}%
+     \hspace*{2ex}%
+   }{.333333\paperwidth}}%
+}{}

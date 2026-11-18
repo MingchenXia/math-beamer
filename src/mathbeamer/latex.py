@@ -87,17 +87,15 @@ def _rich(text, allow_emphasis=True):
 
 
 def _frame_tex(frame: Frame, figure: str | None) -> list[str]:
-    lines = []
+    lines = [r"\begin{frame}{" + _rich(frame.title) + "}"]
     if figure:
         lines.extend([
-            r"\begin{frame}[plain,noframenumbering]{" + _rich(frame.title) + "}",
             r"\centering",
             r"\includegraphics[width=.95\linewidth,height=.65\textheight,keepaspectratio]{" + figure + "}",
         ])
         if frame.caption:
             lines.append(r"{\centering\small\MathBeamerLine{" + _rich(frame.caption) + r"}\par}")
     else:
-        lines.append(r"\begin{frame}{" + _rich(frame.title) + "}")
         if frame.style in _BLOCKS:
             environment, label = _BLOCKS[frame.style]
             lines.append(r"\begin{" + environment + "}{" + label + "}")
@@ -116,34 +114,39 @@ def _frame_tex(frame: Frame, figure: str | None) -> list[str]:
     return lines
 
 
+def _metadata(command, full, short):
+    optional = "[{" + _escape(short) + "}]" if short else ""
+    return "\\" + command + optional + "{" + _escape(full) + "}"
+
+
 def render(source: str | Path, *, handout: bool = False) -> Deck:
     """Generate Beamer source from a structured talk without running TeX."""
     talk = load_talk(source)
-    options = "aspectratio=169,12pt" + (",handout" if handout else "")
+    options = "[handout]" if handout else ""
     lines = [
-        r"\documentclass[" + options + "]{beamer}",
+        r"\documentclass" + options + "{beamer}",
         r"\usetheme{mathbeamer}",
-        r"\title{" + _escape(talk.title) + "}",
-        r"\author{" + _escape(talk.author) + "}",
-        r"\institute{" + _escape(talk.affiliation) + "}",
-        r"\date{" + _escape(talk.date) + "}",
+        _metadata("title", talk.title, talk.short_title),
+        _metadata("author", talk.author, talk.short_author),
+        _metadata("institute", talk.affiliation, talk.short_affiliation),
+        _metadata("date", talk.date, talk.short_date),
         "",
         r"\begin{document}",
-        r"\begin{frame}[plain,noframenumbering]",
+        r"\begin{frame}",
         r"\titlepage",
         r"\end{frame}",
         "",
     ]
-    if talk.outline:
-        lines.extend([
-            r"\begin{frame}[plain,noframenumbering]{Outline}",
-            r"\tableofcontents",
-            r"\end{frame}",
-            "",
-        ])
     figures = []
     for section in talk.sections:
         lines.extend([r"\section{" + _escape(section.title) + "}", ""])
+        if talk.outline:
+            lines.extend([
+                r"\begin{frame}{Table of Contents}",
+                r"\tableofcontents[currentsection]",
+                r"\end{frame}",
+                "",
+            ])
         for frame in section.frames:
             figure = None
             if frame.image is not None:
@@ -155,11 +158,9 @@ def render(source: str | Path, *, handout: bool = False) -> Deck:
                 raise TalkError(f"Frame {frame.title!r}: {error}") from error
             lines.append("")
     lines.extend([
-        r"\begin{frame}[plain,noframenumbering]",
+        r"\begin{frame}",
         r"\centering",
-        r"{\usebeamercolor[fg]{structure}\LARGE\bfseries Thank you\par}",
-        r"\vspace{0.7em}",
-        r"{\large Questions?\par}",
+        r"Thank you!",
         r"\end{frame}",
         r"\end{document}",
         "",
